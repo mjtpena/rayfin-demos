@@ -1,0 +1,12 @@
+diff --git a/rayfin/data/Todo.ts b/rayfin/data/Todo.ts
+index 1770e51..c6b3b8f 100644
+--- a/rayfin/data/Todo.ts
++++ b/rayfin/data/Todo.ts
+@@ -14,6 +14,7 @@ import {
+ export class Todo {
+   @uuid() id!: string;
+   @text({ min: 1, max: 100 }) title!: string;
++  @text({ optional: true, max: 500 }) notes?: string;
+   @boolean() isCompleted!: boolean;
+   @date() createdAt!: Date;
+   @text() user_id!: string;

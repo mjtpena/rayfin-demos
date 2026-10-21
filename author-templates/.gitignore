@@ -1,0 +1,6 @@
+node_modules/
+
+# Generated while running the demo (recreate with the commands in README.md)
+starter-app/
+test-output/
+recording/.video-tmp/

@@ -1,0 +1,39 @@
+diff --git a/src/pages/Dashboard.tsx b/src/pages/Dashboard.tsx
+index edefd5e..e8a53f0 100644
+--- a/src/pages/Dashboard.tsx
++++ b/src/pages/Dashboard.tsx
+@@ -12,6 +12,7 @@ import { TodoForm } from '@/components/TodoForm';
+ import { TodoList } from '@/components/TodoList';
+ import { Alert, AlertDescription } from '@/components/ui/alert';
+ import { Button } from '@/components/ui/button';
++import { Progress } from '@/components/ui/progress';
+ import { useAuth } from '@/hooks/AuthContext';
+ import { useTodos } from '@/hooks/useTodos';
+ 
+@@ -80,6 +81,7 @@ const DOCS = [
+ export function Dashboard() {
+   const { user, signOut } = useAuth();
+   const { todos, loading, error, addTodo, toggleTodo } = useTodos();
++  const completedCount = todos.filter((todo) => todo.isCompleted).length;
+ 
+   const handleSignOut = async () => {
+     await signOut();
+@@ -135,6 +137,18 @@ export function Dashboard() {
+               </Alert>
+             )}
+ 
++            {!loading && todos.length > 0 && (
++              <div className="mb-6">
++                <div className="mb-2 flex justify-between text-sm text-muted-foreground">
++                  <span>Progress</span>
++                  <span>
++                    {completedCount} of {todos.length} complete
++                  </span>
++                </div>
++                <Progress value={(completedCount / todos.length) * 100} />
++              </div>
++            )}
++
+             <TodoList todos={todos} loading={loading} onToggle={handleToggle} />
+ 
+             <div className="mt-6">

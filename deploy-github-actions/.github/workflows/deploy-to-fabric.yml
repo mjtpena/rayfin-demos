@@ -1,0 +1,71 @@
+name: Deploy to Fabric
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Allow destructive schema changes that may result in data loss'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Fabric
+    runs-on: ubuntu-latest
+    env:
+      CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      TENANT_ID: ${{ secrets.TENANT_ID }}
+      CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+      FABRIC_WORKSPACE_NAME: ${{ secrets.FABRIC_WORKSPACE_NAME }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      # rayfin up compiles rayfin/data/*.ts and runs the static build, both of
+      # which need the project's node_modules.
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install Rayfin CLI
+        run: npm install -g @microsoft/rayfin-cli
+
+      # The CLI loads keytar on login even with --encryption-fallback-enabled,
+      # and keytar needs libsecret, which the ubuntu-24.04 runner image lacks.
+      - name: Install libsecret
+        run: sudo apt-get update -q && sudo apt-get install -y -q libsecret-1-0
+
+      # Hosted runners have no OS keychain, so let the CLI keep its token cache
+      # in plain files. The runner is discarded after the job.
+      - name: Login to Rayfin with service principal
+        run: |
+          rayfin login \
+            --service-principal \
+            --encryption-fallback-enabled \
+            -t "$TENANT_ID" -u "$CLIENT_ID" -p "$CLIENT_SECRET"
+
+      - name: Deploy to Fabric
+        run: |
+          EXTRA_ARGS=""
+          if [[ "${{ inputs.force }}" == "true" ]]; then
+            EXTRA_ARGS="$EXTRA_ARGS --force"
+          fi
+          rayfin up \
+            --workspace "$FABRIC_WORKSPACE_NAME" \
+            --yes \
+            $EXTRA_ARGS

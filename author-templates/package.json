@@ -1,0 +1,8 @@
+{
+  "name": "author-templates-demo",
+  "private": true,
+  "description": "Demo: author a Fabric Apps template and scaffold from it with the Rayfin CLI",
+  "devDependencies": {
+    "@microsoft/rayfin-cli": "1.36.2"
+  }
+}
